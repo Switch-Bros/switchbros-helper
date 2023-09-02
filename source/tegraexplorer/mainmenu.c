@@ -26,7 +26,7 @@
 //#define SCRIPT_ONLY 1
 
 #ifdef INCLUDE_BUILTIN_SCRIPTS
-#include "../../build/TegraExplorer/script/builtin.h"
+#include "../../build/kefir-helper/script/builtin.h"
 #endif
 
 extern hekate_config h_cfg;
@@ -46,9 +46,12 @@ enum {
     #else 
     MainExit = 0,
     #endif
-    MainPowerOff,
-    MainRebootHekate,
     MainReloadTE,
+    MainPowerOff,
+    MainRebootRCM,
+    MainRebootNormal,
+    MainRebootHekate,
+    MainRebootAMS,
     MainScripts,
 };
 
@@ -67,12 +70,12 @@ MenuEntry_t mainMenuEntries[] = {
     #else 
     [MainExit] = {.optionUnion = COLORTORGB(COLOR_WHITE), .name = "\n-- Exit --"},
     #endif
+    [MainReloadTE] = {.optionUnion = COLORTORGB(COLOR_VIOLET), .name = "Reload TE"},
     [MainPowerOff] = {.optionUnion = COLORTORGB(COLOR_VIOLET), .name = "Power off"},
-    // [MainRebootAMS] = {.optionUnion = COLORTORGB(COLOR_VIOLET), .name = "Reboot to hekate"},
-    // [MainRebootRCM] = {.optionUnion = COLORTORGB(COLOR_VIOLET), .name = "Reboot to RCM"},
-    // [MainRebootNormal] = {.optionUnion = COLORTORGB(COLOR_VIOLET), .name = "Reboot normally"},
-    [MainRebootHekate] = {.optionUnion = COLORTORGB(COLOR_VIOLET), .name = "Reboot to hekate"},
-    [MainReloadTE] = {.optionUnion = COLORTORGB(COLOR_VIOLET), .name = "Reload TegraExplorer"},
+    [MainRebootRCM] = {.optionUnion = COLORTORGB(COLOR_VIOLET), .name = "Reboot to RCM"},
+    [MainRebootNormal] = {.optionUnion = COLORTORGB(COLOR_VIOLET), .name = "Reboot normally"},
+    [MainRebootHekate] = {.optionUnion = COLORTORGB(COLOR_VIOLET), .name = "Reboot to bootloader/update.bin"},
+    [MainRebootAMS] = {.optionUnion = COLORTORGB(COLOR_VIOLET), .name = "Reboot to atmosphere/reboot_payload.bin"},
     [MainScripts] = {.optionUnion = COLORTORGB(COLOR_WHITE) | SKIPBIT, .name = "\n-- Scripts --"}
 };
 
@@ -122,7 +125,7 @@ void ViewKeys(){
 
 void ViewCredits(){
     gfx_clearscreen();
-    gfx_printf("\nTegraexplorer v%d.%d.%d.%d\nBy SuchMemeManySkill\n\nBased on Lockpick_RCM & Hekate, from shchmue & CTCaer\n\n\n", LP_VER_MJ, LP_VER_MN, LP_VER_BF, LP_VER_KEF);
+    gfx_printf("\nTegraexplorer v%d.%d.%d\nBy SuchMemeManySkill\n\nBased on Lockpick_RCM & Hekate, from shchmue & CTCaer\n\n\n", LP_VER_MJ, LP_VER_MN, LP_VER_BF);
 
     if (hidRead()->r)
         gfx_printf("%k\"I'm not even sure if it works\" - meme", COLOR_ORANGE);
@@ -164,12 +167,12 @@ menuPaths mainMenuPaths[] = {
     [MainViewKeys] = ViewKeys,
     [MainViewCredits] = ViewCredits,
     #endif
-    [MainPowerOff] = power_off,
+    [MainReloadTE] = ReloadTE,
+    [MainRebootAMS] = RebootToAMS,
     [MainRebootHekate] = RebootToHekate,
-    // [MainRebootAMS] = RebootToAMS,
-    // [MainRebootRCM] = reboot_rcm,
-    // [MainRebootNormal] = reboot_normal,
-    [MainReloadTE] = ReloadTE
+    [MainRebootRCM] = reboot_rcm,
+    [MainPowerOff] = power_off,
+    [MainRebootNormal] = reboot_normal,
 };
 
 void EnterMainMenu(){
@@ -189,9 +192,9 @@ void EnterMainMenu(){
         mainMenuEntries[MainViewKeys].hide = !TConf.keysDumped;
 
         // -- Exit --
-        // mainMenuEntries[MainRebootAMS].hide = (!sd_mounted || !FileExists("sd:/atmosphere/reboot_payload.bin"));
+        mainMenuEntries[MainRebootAMS].hide = (!sd_mounted || !FileExists("sd:/atmosphere/reboot_payload.bin"));
         mainMenuEntries[MainRebootHekate].hide = (!sd_mounted || !FileExists("sd:/bootloader/update.bin"));
-        // mainMenuEntries[MainRebootRCM].hide = h_cfg.t210b01;
+        mainMenuEntries[MainRebootRCM].hide = h_cfg.t210b01;
         #endif
         // -- Scripts --
         #ifndef INCLUDE_BUILTIN_SCRIPTS

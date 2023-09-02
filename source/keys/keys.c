@@ -204,7 +204,7 @@ static bool _derive_tsec_keys(tsec_ctxt_t *tsec_ctxt, u32 kb, key_derivation_ctx
         }
     }
 
-    mc_enable_ahb_redirect(true);
+    mc_enable_ahb_redirect();
 
     if (res < 0) {
         //EPRINTFARGS("ERROR %x dumping TSEC.\n", res);
@@ -240,9 +240,9 @@ static ALWAYS_INLINE u8 *_read_pkg1(const pkg1_id_t **pkg1_id) {
     *pkg1_id = pkg1_identify(pkg1 + pk1_offset);
     if (!*pkg1_id) {
         DPRINTF("Unknown pkg1 version.\n Make sure you have the latest Lockpick_RCM.\n If a new firmware version just came out,\n Lockpick_RCM must be updated.\n Check Github for new release.");
-        //gfx_hexdump(0, pkg1 + pk1_offset, 0x20);
+        //gfx_hexdump(0, pkg1, 0x20);
         char pkg1txt[16] = {0};
-        memcpy(pkg1txt, pkg1 + pk1_offset + 0x10, 14);
+        memcpy(pkg1txt, pkg1 + pk1_offset +  0x10, 15);
         gfx_printf("Unknown pkg1 version\nMake sure you have the latest version of TegraExplorer\n\nPKG1: '%s'\n", pkg1txt);
         return NULL;
     }

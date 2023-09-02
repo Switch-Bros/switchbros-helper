@@ -71,7 +71,7 @@ volatile nyx_storage_t *nyx_str = (nyx_storage_t *)NYX_STORAGE_ADDR;
 #define RCM_PAYLOAD_ADDR    (EXT_PAYLOAD_ADDR + ALIGN(PATCHED_RELOC_SZ, 0x10))
 #define COREBOOT_END_ADDR   0xD0000000
 #define CBFS_DRAM_EN_ADDR   0x4003e000
-#define CBFS_DRAM_MAGIC     0x4452414D // "DRAM"
+#define  CBFS_DRAM_MAGIC    0x4452414D // "DRAM"
 
 static void *coreboot_addr;
 
@@ -291,36 +291,13 @@ void ipl_main()
 
 	gfx_clearscreen();
 	
+	if (FileExists("sd:/config/kefir-helper/helper.te"))
+		RunScript("sd:/config/kefir-helper/", newFSEntry("helper.te"));
 
-	if (FileExists("sd:/switch/prod.keys")){
-		int res = -1;
+	gfx_printf("\n\nHelper script not found.\nPlease reinstall kefir\n\nPress Power button for reboot to hekate...");
+	hidWait()->buttons;
+	launch_payload("sd:/bootloader/update.bin");
 
-		if (btn_read() & BTN_VOL_DOWN || DumpKeys())
-			res = GetKeysFromFile("sd:/switch/prod.keys");
-
-		TConf.keysDumped = (res > 0) ? 0 : 1;
-
-		if (res > 0)
-			DrawError(newErrCode(TE_ERR_KEYDUMP_FAIL));
-		
-		if (TConf.keysDumped)
-			SetKeySlots();
-	}
-
-	if (FileExists("sd:/kefir/switch/kefir-updater/update.te"))
-		RunScript("sd:/kefir/switch/kefir-updater", newFSEntry("update.te"));
-	else if (FileExists("sd:/switch/kefir-updater/update.te"))
-		RunScript("sd:/switch/kefir-updater", newFSEntry("update.te"));
-	else if (FileExists("sd:/startup.te"))
-		RunScript("sd:/", newFSEntry("startup.te"));
-	// else 
-	// 	{
-	// 		gfx_printf("\n\nStartup script not found.\nPlease redownload kefir or install it manually\n\nPress Power button for reboot...");
-	// 		hidWait()->buttons;
-	// 		launch_payload("sd:/payload.bin");
-	// 	}
-
-	EnterMainMenu();
 
 	// Halt BPMP if we managed to get out of execution.
 	while (true)
