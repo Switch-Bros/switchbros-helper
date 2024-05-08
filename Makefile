@@ -12,7 +12,8 @@ IPL_LOAD_ADDR := 0x40008000
 LPVERSION_MAJOR := 4
 LPVERSION_MINOR := 1
 LPVERSION_BUGFX := 1
-LPVERSION := \"$(LPVERSION_MAJOR).$(LPVERSION_MINOR).$(LPVERSION_BUGFX)\"
+LPVERSION_KEF := $(shell cat /mnt/f/git/dev/_kefir/version)
+LPVERSION := \"$(LPVERSION_MAJOR).$(LPVERSION_MINOR).$(LPVERSION_BUGFX)-$(LPVERSION_KEF)\"
 
 ################################################################################
 
@@ -41,7 +42,7 @@ FFCFG_INC := '"../$(SOURCEDIR)/libs/fatfs/ffconf.h"'
 ################################################################################
 
 CUSTOMDEFINES := -DIPL_LOAD_ADDR=$(IPL_LOAD_ADDR)
-CUSTOMDEFINES += -DLP_VER_MJ=$(LPVERSION_MAJOR) -DLP_VER_MN=$(LPVERSION_MINOR) -DLP_VER_BF=$(LPVERSION_BUGFX) -DLP_VER=$(LPVERSION)
+CUSTOMDEFINES += -DLP_VER_MJ=$(LPVERSION_MAJOR) -DLP_VER_MN=$(LPVERSION_MINOR) -DLP_VER_BF=$(LPVERSION_BUGFX) -DLP_VER_KEF=$(LPVERSION_KEF) -DLP_VER=$(LPVERSION)
 CUSTOMDEFINES += -DGFX_INC=$(GFX_INC) -DFFCFG_INC=$(FFCFG_INC)
 
 # 0: UART_A, 1: UART_B.
@@ -66,6 +67,7 @@ all: $(OUTPUTDIR)/$(TARGET)_small.bin
 	@echo "Max size is 126296 Bytes."
 	@if [ ${BIN_SIZE} -gt 126296 ]; then echo "\e[1;33mPayload size exceeds limit!\e[0m"; fi
 	@if [ ${COMPR_BIN_SIZE} -gt 126296 ]; then echo "\e[1;33mCompressed Payload size exceeds limit!\e[0m"; fi
+	@cp $(CURDIR)/output/TegraExplorer.bin /mnt/e/Switch/_kefir/kefir/bootloader/payloads/TegraExplorer.bin
 
 clean:
 	@rm -rf $(BUILDDIR)

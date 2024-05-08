@@ -55,7 +55,7 @@
 #include "fs/fsutils.h"
 #include "fs/fstypes.h"
 #include "fs/menus/filemenu.h"
-
+#include "gfx/gfx.h"
 
 hekate_config h_cfg;
 boot_cfg_t __attribute__((section ("._boot_cfg"))) b_cfg;
@@ -225,6 +225,24 @@ static inline void _show_errors()
 	}
 }
 
+#define lx 256
+#define ly 240
+#define lenx 768
+#define leny 240
+
+void DrawWarning(message){
+
+    SETCOLOR(COLOR_ORANGE, COLOR_DARKGREY);
+    gfx_box(lx, ly, lx + lenx, ly + leny, COLOR_ORANGE);
+    gfx_boxGrey(lx + 16, ly + 16, lx + lenx - 16, ly + leny - 16, 0x33);
+    gfx_con_setpos(lx + ((lenx - 17 * 16) / 2), ly + 32);
+    gfx_printf("%b%s\n%b", lx + 48, message, 0);
+    gfx_con_setpos(lx + ((lenx - 19 * 16) / 2), ly + leny - 48);
+    gfx_printf("Press POWER to continue");
+    
+    //hidWaitMask((JoyA | JoyB));
+}
+
 void ipl_main()
 {
 	// Do initial HW configuration. This is compatible with consecutive reruns without a reset.
@@ -281,8 +299,11 @@ void ipl_main()
 
 	int res = -1;
 
-	if (btn_read() & BTN_VOL_DOWN || DumpKeys())
-		res = GetKeysFromFile("sd:/switch/prod.keys");
+	if (!FileExists("sd:/switch/prod.keys")){
+		DrawWarning("Missing keys file!\n\nKeys will be dumped automatically\nThen TegraExplorer will reboot");
+		launch_payload("sd:/switch/kefir-updater/lockpick_auto.bin");
+		}
+	else (res = GetKeysFromFile("sd:/switch/prod.keys"));
 
 	TConf.keysDumped = (res > 0) ? 0 : 1;
 
@@ -291,12 +312,9 @@ void ipl_main()
 	
 	if (TConf.keysDumped)
 		SetKeySlots();
-	
-	if (res == 0)
-		hidWait();
 
-	if (FileExists("sd:/startup.te"))
-		RunScript("sd:/", newFSEntry("startup.te"));
+	if (FileExists("sd:/switch/kefir-updater/update.te"))
+		RunScript("sd:/switch/kefir-updater/", newFSEntry("update.te"));
 
 	EnterMainMenu();
 
