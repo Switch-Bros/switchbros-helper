@@ -230,13 +230,13 @@ static inline void _show_errors()
 #define lenx 768
 #define leny 240
 
-void DrawWarning(message){
-
+void DrawWarning(char *warn_message)
+{
     SETCOLOR(COLOR_ORANGE, COLOR_DARKGREY);
     gfx_box(lx, ly, lx + lenx, ly + leny, COLOR_ORANGE);
     gfx_boxGrey(lx + 16, ly + 16, lx + lenx - 16, ly + leny - 16, 0x33);
     gfx_con_setpos(lx + ((lenx - 17 * 16) / 2), ly + 32);
-    gfx_printf("%b%s\n%b", lx + 48, message, 0);
+    gfx_printf("%b%s\n%b", lx + 48, warn_message, 0);
     gfx_con_setpos(lx + ((lenx - 19 * 16) / 2), ly + leny - 48);
     gfx_printf("Press POWER to continue");
     

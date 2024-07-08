@@ -231,8 +231,9 @@ u8 nextToken(char** inPtr, void** val) {
 				TokenConvertion_t t = tokenConvertions[i];
 				if (!memcmp(t.strToken, in, (t.strToken[1] == '\0') ? 1 : 2)) {
 					//gfx_printf("Token: '%s'\n", t.strToken);
+					u8 tempToken = t.token;
+					*val = (void*)(uintptr_t)tempToken;
 					ret = Token_Token;
-					*val = t.token;
 
 					if (t.strToken[1] != '\0')
 						in++;
@@ -372,9 +373,9 @@ ParserRet_t parseScript(char* in, u32 len) {
 			op.variable = reference;
 		}
 		else if (tokenType == Token_Token) {
-			u8 token = (u8)var;
+			u8 tempToken = (u8)(uintptr_t)var;
 
-			if (token == Equals && lastOp) {
+			if (tempToken == Equals && lastOp) {
 				if (lastOp->token == Variable) {
 					if (lastOp->variable.staticVariableSet) {
 						SCRIPT_PARSER_ERR("Trying to assign to a static variable");
@@ -393,7 +394,7 @@ ParserRet_t parseScript(char* in, u32 len) {
 					SCRIPT_PARSER_ERR("Trying to assign to non-object");
 				}
 			}
-			else if (token == LeftCurlyBracket) {
+			else if (tempToken == LeftCurlyBracket) {
 				Function_t templateFunction = createEmptyFunction();
 				vecAdd(&functionStack, templateFunction);
 
@@ -401,7 +402,7 @@ ParserRet_t parseScript(char* in, u32 len) {
 				vecAdd(&stackHistoryHolder, functionHistory);
 				continue;
 			}
-			else if (token == RightCurlyBracket) {
+			else if (tempToken == RightCurlyBracket) {
 				if (stackHistoryHolder.count != 1 && *lastHistory == History_Function) {
 					Function_t *popFunc = popStackEntry(&functionStack);
 					popStackEntry(&stackHistoryHolder);
@@ -438,8 +439,6 @@ ParserRet_t parseScript(char* in, u32 len) {
 						}
 					}
 
-
-
 					Variable_t a = newFunctionVariable(createFunctionClass(*popFunc, NULL));
 					vecAdd(&staticVariableHolder, a);
 					CreateVariableReferenceStatic((Variable_t*)(staticVariableHolder.count - 1));
@@ -453,7 +452,7 @@ ParserRet_t parseScript(char* in, u32 len) {
 					SCRIPT_PARSER_ERR("Stack count is 1 or state is not a function");
 				}
 			}
-			else if (token == Dot) {
+			else if (tempToken == Dot) {
 				if (lastOp && (lastOp->token == Variable || lastOp->token == BetweenBrackets || (lastOp->token == CallArgs && !isLastVarSet(lastOp)))) {
 					tokenType = nextToken(&in, &var);
 					if (tokenType != Token_Variable) {
@@ -468,7 +467,7 @@ ParserRet_t parseScript(char* in, u32 len) {
 					SCRIPT_PARSER_ERR("Member access on non-variable");
 				}
 			}
-			else if (token == LeftBracket) {
+			else if (tempToken == LeftBracket) {
 				Function_t templateFunction = createEmptyFunction();
 				vecAdd(&functionStack, templateFunction);
 
@@ -476,7 +475,7 @@ ParserRet_t parseScript(char* in, u32 len) {
 				vecAdd(&stackHistoryHolder, functionHistory);
 				continue;
 			}
-			else if (token == RightBracket) { 
+			else if (tempToken == RightBracket) { 
 				if (*lastHistory == History_Bracket) {
 					Function_t* bstack = popStackEntry(&functionStack);
 					popStackEntry(&stackHistoryHolder);
@@ -513,7 +512,7 @@ ParserRet_t parseScript(char* in, u32 len) {
 					SCRIPT_PARSER_ERR(") without (");
 				}
 			}
-			else if (token == LeftSquareBracket) {
+			else if (tempToken == LeftSquareBracket) {
 				Function_t templateFunction = createEmptyFunction();
 				vecAdd(&functionStack, templateFunction);
 
@@ -521,7 +520,7 @@ ParserRet_t parseScript(char* in, u32 len) {
 				vecAdd(&stackHistoryHolder, functionHistory);
 				continue;
 			}
-			else if (token == RightSquareBracket) {
+			else if (tempToken == RightSquareBracket) {
 				if (*lastHistory == History_Array) {
 					Function_t* astack = popStackEntry(&functionStack);
 					popStackEntry(&stackHistoryHolder);
@@ -571,15 +570,15 @@ ParserRet_t parseScript(char* in, u32 len) {
 					SCRIPT_PARSER_ERR("] without [");
 				}
 			}
-			else if (token == Not) {
+			else if (tempToken == Not) {
 				notNext = !notNext;
 				continue;
 			}
 			else {
-				op.token = token;
+				op.token = tempToken;
 
 				for (u32 i = 0; i < tokenConvertionCount; i++) {
-					if (token == tokenConvertions[i].token) {
+					if (tempToken == tokenConvertions[i].token) {
 						op.tokenStr = tokenConvertions[i].strToken;
 						break;
 					}
