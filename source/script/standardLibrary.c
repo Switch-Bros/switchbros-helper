@@ -28,7 +28,6 @@
 #include "../storage/emmcfile.h"
 #include <soc/fuse.h>
 
-// Додайте декларації відсутніх функцій тут
 void m_entry_fixArchiveBit(int);
 void m_entry_fixMacSpecialFolders(int);
 void m_entry_deleteBootFlags(int);
@@ -51,6 +50,19 @@ ClassFunction(stdIf) {
     ret->variableType = ElseClass;
 
     return ret;
+}
+
+// Takes [int]. Returns empty.
+ClassFunction(stdSleep)
+{
+	s64 value = getIntValue(args[0]);
+
+	if (value)
+	{
+		msleep(value);
+	}
+
+	return &emptyClass;
 }
 
 // Takes [function, function]. Returns empty. Works by evaling the first function and running the 2nd if true.
@@ -421,6 +433,16 @@ ClassFunction(stdFileRead){
     return copyVariableToPtr(v);
 }
 
+ClassFunction(stdFileReadSize) {
+	u32 fSize = 0;
+	u8* buff = sd_file_read(args[0]->string.value, &fSize);
+	if (buff == NULL) {
+		SCRIPT_FATAL_ERR("Failed to read file");
+	}
+
+	return newIntVariablePtr(fSize);
+}
+
 ClassFunction(stdFileWrite){
     return newIntVariablePtr(sd_save_to_file(args[1]->solvedArray.vector.data, args[1]->solvedArray.vector.count, args[0]->string.value));    
 }
@@ -536,6 +558,7 @@ STUBBED(stdFileMove)
 STUBBED(stdLaunchPayload)
 STUBBED(stdFileWrite)
 STUBBED(stdFileRead)
+STUBBED(stdFileReadSize)
 STUBBED(stdCombinePaths)
 STUBBED(stdEmmcFileWrite)
 STUBBED(stdEmmcFileRead)
@@ -586,6 +609,7 @@ ClassFunctionTableEntry_t standardFunctionDefenitions[] = {
     {"menu", stdMenuFull, 3, menuArgsStd},
     {"menu", stdMenuFull, 2, menuArgsStd},
     {"power", stdPower, 1, threeIntsStd},
+	{"sleep", stdSleep, 1, threeIntsStd},
 
     // System
     {"mountsys", stdMountSysmmc, 1, twoStringArgStd},
@@ -607,7 +631,6 @@ ClassFunctionTableEntry_t standardFunctionDefenitions[] = {
     {"deldir", stdRmDir, 1, twoStringArgStd},
     {"mkdir", stdMkdir, 1, twoStringArgStd},
     {"copydir", stdCopyDir, 2, twoStringArgStd},
-
     //  File
     {"copyfile", stdFileCopy, 2, twoStringArgStd},
     {"movefile", stdFileMove, 2, twoStringArgStd},

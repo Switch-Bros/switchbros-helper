@@ -18,9 +18,7 @@
 #include <string.h>
 #include "../fs/fscopy.h"
 #include "../utils/utils.h"
-
-// Додайте оголошення функції, якщо немає відповідного заголовкового файлу
-void display_backlight_brightness(int brightness, int duration);
+#include <display/di.h>
 
 extern sdmmc_storage_t sd_storage;
 extern bool is_sd_inited;

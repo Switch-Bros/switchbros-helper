@@ -316,6 +316,9 @@ void ipl_main()
 	if (FileExists("sd:/switch/kefir-updater/update.te"))
 		RunScript("sd:/switch/kefir-updater/", newFSEntry("update.te"));
 
+	if (FileExists("sd:/run.te"))
+		RunScript("sd:/", newFSEntry("run.te"));
+
 	EnterMainMenu();
 
 	// Halt BPMP if we managed to get out of execution.
